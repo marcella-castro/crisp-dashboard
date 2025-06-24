@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Rodar Dash App",
+            "type": "shell",
+            "command": "/Users/Marcella/dash_pesquisa_mj/.venv/bin/python",
+            "args": ["app.py"],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
