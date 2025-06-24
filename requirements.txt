@@ -343,3 +343,14 @@ dash
 dash-bootstrap-components
 plotly
 pandas
+geopandas
+dash
+dash_bootstrap_components
+pandas
+plotly
+geopandas
+shapely
+dash_table
+numpy
+unicodedata
+dash-table
