@@ -189,7 +189,7 @@ packaging==24.2
     #   langchain-core
     #   marshmallow
     #   plotly
-pandas==2.2.3
+pandas
     # via michelin-guide-restaurants-dashboard
 parso==0.8.4
     # via jedi
@@ -342,15 +342,21 @@ seaborn
 dash
 dash-bootstrap-components
 plotly
-pandas
 geopandas
 dash
 dash_bootstrap_components
-pandas
-plotly
-geopandas
+dash_core_components
+dash_html_components
+dash_renderer
+dash_canvas
+dash_leaflet
+dash_cytoscape
+dash_daq
+dash_mantine_components
+dash_extensions
+dash_labs
+dash_ag_grid
 shapely
 dash_table
 numpy
-unicodedata
 dash-table
