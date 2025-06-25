@@ -36,7 +36,6 @@ NAVBAR = {
         "Histórico": {"icon": "bi bi-folder2-open", "relative_path": "/llm-analysis"},
         "Colaboradores": {"icon": "bi bi-award-fill", "relative_path": "/recommendations"},
     },
-    #award-fill bi bi-file-person-fill person-bounding-box person-badge-fill
     "Mais": {
         "Dados brutos": {"icon": "bi bi-clipboard-data-fill", "relative_path": "/about"},
         "Sobre o CRISP": {"icon": "bi bi-info-circle", "relative_path": "/about"},
@@ -73,6 +72,8 @@ SIDEBAR_STYLE = {
     "width": "16rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
+    "overflow-y": "auto",  # Adicione esta linha para rolagem vertical
+    "zIndex": 1000,        # Garante que fique acima do conteúdo
 }
 
 

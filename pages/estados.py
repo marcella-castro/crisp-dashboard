@@ -116,6 +116,25 @@ COLUNAS_DONUT_JUIZ = {
     "Destinação da Arma de Fogo": 'P9Q0. O juiz analisou a destinação da arma de fogo usada no crime?',
 }
 
+import re
+
+def mascarar_numero_processo(numero):
+    """
+    Mascara o número do processo no padrão CNJ:
+    Exemplo: 0000008-44.1994.8.26.0177 -> 000XXX-XX.1994.8.26.0177 -> 000XXX-XX.1994.8.26.XXXX
+    Mantém os 3 primeiros dígitos, o ano e os 4 dígitos finais, censurando o restante.
+    """
+    import re
+    if not isinstance(numero, str):
+        numero = str(numero)
+    # Regex para padrão CNJ: NNNNNNN-DD.AAAA.J.TR.OOOO
+    match = re.match(r"(\d{3})\d{4}-\d{2}\.(\d{4})\.(\d)\.(\d{2})\.(\d{4})", numero)
+    if match:
+        # Mantém os 3 primeiros, ano, e os 4 finais
+        return f"{match.group(1)}XXX-XX.{match.group(2)}.{match.group(3)}.{match.group(4)}.XXXX"
+    # Se não bater o padrão, retorna só os 3 primeiros e o resto como X
+    return numero[:3] + "XXX-XX.XXXX.X.XX.XXXX"
+
 def converter_dias_em_ymd(dias):
     if pd.isna(dias):
         return "-"
@@ -299,6 +318,7 @@ def gerar_grafico_donut(df, coluna):
             )
         ],
         margin=dict(l=40, r=40, t=60, b=40),
+        height=450,
         showlegend=True,
         legend_title_text="Resposta"
     )
@@ -577,6 +597,7 @@ def layout():
                     ])
                 ),
                 md=12, sm=12,
+                className="d-none d-md-block", #esconde em telas pequenas 
             ),
             class_name="mb-4"
         ),
@@ -693,7 +714,11 @@ def atualizar_dropdown_processos(estado):
     if col_proc:
         processos = df[col_proc].dropna().unique()
         processos = sorted(processos, key=lambda x: str(x))
-        options = [{"label": str(p), "value": str(p)} for p in processos]
+        #options = [{"label": str(p), "value": str(p)} for p in processos]
+        options = [
+            {"label": mascarar_numero_processo(str(p)), "value": str(p)}
+            for p in processos
+        ]
         value = options[0]["value"] if options else None
         return options, value
     return [], None
@@ -797,7 +822,7 @@ def atualizar_linha_tempo_individual(processo, reu, marcos, estado):
     agradecimento = f"Agradecimentos ao bolsista {nome_pesquisador_padrao} pela obtenção dos dados" if nome_pesquisador_padrao else ""
     fig.update_layout(
         title={
-            'text': f"Linha do Tempo - Processo {processo} | Réu {reu}<br><span style='font-size:13px;color:#888'>{agradecimento}</span>",
+            'text': f"Linha do Tempo - Processo {mascarar_numero_processo(processo)} | Réu {reu}<br><span style='font-size:13px;color:#888'>{agradecimento}</span>",
             'y':0.92,
             'x':0.5,
             'xanchor': 'center',
@@ -881,6 +906,7 @@ def atualizar_grafico_donut(estado, coluna_escolhida):
             )
         ],
         margin=dict(l=40, r=40, t=60, b=40),
+        height=450,
         showlegend=True,
         legend_title_text="Resposta"
     )
@@ -955,6 +981,7 @@ def atualizar_grafico_donut_mp(estado, coluna_escolhida):
             )
         ],
         showlegend=True,
+        height=450,
         legend_title_text="Resposta"
     )
     return fig
@@ -1027,6 +1054,7 @@ def atualizar_grafico_donut_juiz(estado, coluna_escolhida):
             )
         ],
         showlegend=True,
+        height=430,
         legend_title_text="Resposta"
     )
     return fig
@@ -1053,7 +1081,7 @@ def atualizar_mapa_cidades(estado):
     estado_geojson = gdf_estado.__geo_interface__
 
     # Crie colunas auxiliares com nomes amigáveis
-    df["Número Processo"] = df["P0Q2. Número do Processo:"]
+    df["Número Processo"] = df["P0Q2. Número do Processo:"].apply(lambda x: mascarar_numero_processo(str(x)) if isinstance(x, str) else x)
     df["Nome Cidade"] = df["nome_cidade"]
     df["Comarca"] = df['P0Q5. Comarca responsável pelo processo:'].apply(lambda x: x.title() if isinstance(x, str) else x)
 
@@ -1330,7 +1358,8 @@ def gerar_sankey_motivacao(estado):
         title_text=" ",
         font_size=12,
         height=800,
-        width=1410,
+        autosize=True,
+        width=None,
         margin=dict(l=40, r=40, t=60, b=40)
     )
 

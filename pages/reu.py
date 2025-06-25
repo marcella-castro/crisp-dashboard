@@ -12,14 +12,17 @@ from utils import TITLE
 
 def carregar_df_estado(estado):
     if estado == "Minas Gerais":
-        return pd.read_csv("data/TJMG/df_reu_22.06.2025_TJMG.csv")
+        return pd.read_csv("data/TJMG/df_reu_TJMG.csv")
     else:
-        return pd.read_csv("data/TJSP/df_reu_17.06.2025_TJSP.csv")
+        return pd.read_csv("data/TJSP/df_reu_TJSP.csv")
 
 
 PAGE_TITLE = "Réu"
 
 dash.register_page(__name__, name=PAGE_TITLE, title=f"{PAGE_TITLE} | {TITLE}", order=2)
+
+# Paleta de cores (ajuste se quiser)
+CORES_GRAFICOS = ['#950404', '#E04B28', '#C38961', '#388F30', '#007D82']
 
 ESTADOS = {"São Paulo": "SP",
         "Minas Gerais": "MG"}  # Adicione outros estados conforme necessário
@@ -31,6 +34,31 @@ COLUNAS_DONUT = {
     "Estado Civil": 'P1Q10. Qual a situação conjugal/estado civil do réu informado no auto de qualificação policial?', 
     "Cor/Raça": 'P1Q11. Qual é a cor/raça informada no Boletim de Ocorrência/REDS?', 
     "Nível de escolaridade": "P1Q12. Qual o nível de escolaridade do réu informado no auto de qualificação ou, caso não haja a informação no auto de qualificação, no interrogatório policial?",   
+}
+COLUNAS_DONUT_ANTECEDENTES = {
+    "Antecedentes Criminais": "P1Q22. O réu possui antecedentes criminais/passagens (considerando registros de BOs, processos, condenações sem trânsito em julgado, atos infracionais, entre outros) pelo sistema de justiça e segurança pública?"
+   
+}
+
+COLUNAS_DONUT_RELACAO = {
+    "Relação entre Réu e Vítima": 'P1Q16. Há relação de parentesco/relação íntima entre réu e vítima?'
+}
+
+CAUSAS_RELACAO = {
+    'P1Q17[SQ002]': 'Pai/Mãe',
+    'P1Q17[SQ003]': 'Filho(a)',
+    'P1Q17[SQ004]': 'Padrasto/madrasta/enteado(a)',
+    'P1Q17[SQ005]': 'Casamento/União Estável',
+    'P1Q17[SQ006]': 'Irmãos',
+    'P1Q17[SQ007]': 'Relacionamento íntimo afetivo',
+    'P1Q17[SQ008]': 'Primos',
+    'P1Q17[SQ009]': 'Tio/Sobrinho',
+    'P1Q17[SQ010]': 'Sogro/genro',
+    'P1Q17[SQ011]': 'Cunhado',
+    'P1Q17[SQ012]': 'Amigos',
+    'P1Q17[SQ013]': 'Divorciados/ex-companheiros',
+    'P1Q17[SQ014]': 'Outra relação de parentesco',
+    'P1Q17[SQ015]': 'Sem informação'
 }
 
 def gerar_grafico_donut(df, coluna):
@@ -61,7 +89,7 @@ def gerar_grafico_donut(df, coluna):
         labels=labels,
         values=valores,
         hole=0.45,
-        marker=dict(colors=px.colors.qualitative.Plotly),
+        marker=dict(colors=CORES_GRAFICOS[:len(labels)]),
         textinfo='percent+value',
         insidetextorientation='radial',
         sort=False
@@ -133,6 +161,15 @@ def layout():
                     ),
                 md=6, sm=12,
                  ), 
+            dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H5("Boxplot da Idade na Data do Crime", className="mb-3"),
+                            dcc.Graph(id="reu-boxplot-idade"),
+                        ])
+                    ),
+                    md=6, sm=12,
+                ),
             
             ]
         ),
@@ -160,8 +197,55 @@ def layout():
             ],
             class_name="mt-4",
         ),
+        html.Hr(),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H5("Antecedentes Criminais", className="mb-3"),
+                            dcc.Graph(id="grafico-donut-antecedentes"),
+                        ]),
+                    ),
+                    md=6, sm=12,
+                ),
+                dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H5("Legislações Penais Relacionadas aos Antecedentes", className="mb-3"),
+                            dcc.Graph(id="grafico-bar-legislacoes-antecedentes"),
+                        ]),
+                    ),
+                    md=6, sm=12,
+                ),
+            ]
+        ),
+        html.Hr(),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H5("Relação entre Réu e Vítima", className="mb-3"),
+                            dcc.Graph(id="grafico-donut-relacao"),
+                        ]),
+                    ),
+                    md=6, sm=12,
+                ),
+                dbc.Col(
+                dbc.Card(
+                    dbc.CardBody([
+                        html.H5("Tipo de Relação entre Réu e Vítima", className="mb-3"),
+                        dcc.Graph(id="grafico-bar-tipo-relacao"),
+                    ]),
+                ),
+                md=6, sm=12,
+                ),    
+            ]
+        ),
     ]
 
+#call back para donuts multiescolha
 @callback(
     Output("reu-grafico-donut-multiescolha", "figure"),
     [
@@ -200,7 +284,7 @@ def atualizar_grafico_donut(estado, coluna_escolhida):
         labels=labels,
         values=valores,
         hole=0.45,
-        marker=dict(colors=['#950404FF', '#E04B28FF', '#C38961FF', '#9F5630FF', '#388F30FF', '#0F542FFF', '#007D82FF', '#004042FF']),
+        marker=dict(colors=CORES_GRAFICOS[:len(labels)]),
         textinfo='percent+value',
         insidetextorientation='radial',
         sort=False
@@ -230,6 +314,7 @@ def atualizar_grafico_donut(estado, coluna_escolhida):
         ],
         margin=dict(l=40, r=40, t=60, b=40),
         showlegend=True,
+        height=450,
         legend_title_text="Resposta"
     )
     return fig
@@ -259,14 +344,12 @@ def atualizar_grafico_profissoes(estado):
     labels = list(contagem.keys())
     valores = list(contagem.values())
     total = sum(valores)
-    # Paleta de cores (ajuste se quiser)
-    cores = ['#950404', '#E04B28', '#C38961', '#388F30', '#007D82']
 
     fig = go.Figure(go.Bar(
         x=valores,
         y=labels,
         orientation='h',
-        marker_color=cores[:len(labels)],
+        marker_color=CORES_GRAFICOS[:len(labels)],
         text=[f"{v} ({(v/total*100):.1f}%)" if total > 0 else "0 (0%)" for v in valores],
         textposition='outside',
     ))
@@ -338,4 +421,274 @@ def atualizar_grafico_faixa_renda(estado):
     )
     fig.update_xaxes(tickangle=30)
     fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(200,200,200,0.15)')
+    return fig
+
+# Callback para o  gráfico donut existência de antecedente
+
+@callback(
+    Output("grafico-donut-antecedentes", "figure"),
+    Input("estado-dropdown-selection", "value"),
+)
+
+def atualizar_grafico_donut_antecedentes(estado):
+    df = carregar_df_estado(estado)
+    # Pegue a coluna diretamente do dicionário
+    coluna_escolhida = list(COLUNAS_DONUT_ANTECEDENTES.values())[0]
+    if not coluna_escolhida or coluna_escolhida not in df.columns:
+        return go.Figure()
+    dados = df[coluna_escolhida].dropna()
+    if dados.empty:
+        return go.Figure()
+    contagem = dados.value_counts()
+    labels = contagem.index.tolist()
+    valores = contagem.values.tolist()
+
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=valores,
+        hole=0.45,
+        marker=dict(colors=CORES_GRAFICOS[:len(labels)]),
+        textinfo='percent+value',
+        insidetextorientation='radial',
+        sort=False
+    )])
+    fig.update_traces(
+        textfont_size=14,
+        pull=[0.02]*len(labels),
+        hovertemplate='%{label}: %{percent} (%{value})<extra></extra>'
+    )
+    fig.update_layout(
+        title="Antecedentes Criminais do Réu",
+        margin=dict(l=40, r=40, t=60, b=40),
+        showlegend=True,
+        height=430,
+        legend_title_text="Resposta"
+    )
+    return fig
+
+# Callback para o gráfico de legislações penais relacionadas aos antecedentes
+@callback(
+    Output("grafico-bar-legislacoes-antecedentes", "figure"),
+    Input("estado-dropdown-selection", "value"),
+)
+def atualizar_grafico_legislacoes_antecedentes(estado):
+    df = carregar_df_estado(estado)
+    dict_colunas = {
+        'P1Q23[SQ001]': 'Lei de Drogas',
+        'P1Q23[SQ002]': 'Código Penal Militar',
+        'P1Q23[SQ003]': 'Código Penal',
+        'P1Q23[SQ004]': 'Lei de Org. Criminos',
+        'P1Q23[SQ005]': 'Lei Sis. Nacional de Armas',
+        'P1Q23[SQ006]': 'Cód. de Trânsito Brasileiro',
+        'P1Q23[SQ007]': 'Estatuto da Criança e Adolescente (ECA)',
+        'P1Q23[SQ008]': 'Estatuto do Idoso',
+        'P1Q23[SQ009]': 'Lei de abuso de Autoridade',
+        'P1Q23[SQ010]': 'Contravenções Penais',
+        'P1Q23[SQ011]': 'Crime contra o Meio Ambiente',
+        'P1Q23[SQ012]': 'Crimes contra o sistema financeiro Nacional',
+        'P1Q23[SQ013]': 'Lei Maria da Penha',
+        'P1Q23[SQ014]': 'Lei de Terrorismo',
+        'P1Q23[SQ015]': 'Estatuto da Pessoa com Deficiência',
+        'P1Q23[SQ016]': 'Sem informação',
+    }
+    contagem = {}
+    for col, nome in dict_colunas.items():
+        if col in df.columns:
+            contagem[nome] = (df[col] == 'Sim').sum()
+        else:
+            contagem[nome] = 0
+
+    # Remove categorias com 0 ocorrências
+    contagem = {k: v for k, v in contagem.items() if v > 0}
+    # Ordena para visualização
+    contagem = {k: v for k, v in sorted(contagem.items(), key=lambda item: item[1], reverse=True)}
+
+    labels = list(contagem.keys())
+    valores = list(contagem.values())
+    total = sum(valores)
+    cores = CORES_GRAFICOS * (len(labels) // len(CORES_GRAFICOS) + 1)
+
+    fig = go.Figure(go.Bar(
+        x=valores,
+        y=labels,
+        orientation='h',
+        marker_color=cores[:len(labels)],
+        text=[f"{v} ({(v/total*100):.1f}%)" if total > 0 else "0 (0%)" for v in valores],
+        textposition='outside',
+    ))
+    fig.update_layout(
+        title=f'Legislações Penais relacionadas aos Antecedentes Penais do Réu<br>{estado} - Formulário de Réu',
+        xaxis_title='Ocorrências',
+        yaxis_title='',
+        margin=dict(l=40, r=40, t=60, b=40),
+        height=430,
+        plot_bgcolor='white',
+    )
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(200,200,200,0.15)')
+    fig.update_yaxes(showgrid=False)
+    return fig
+
+#Callback para o boxplot da idade na data do crime
+
+@callback(
+    Output("reu-boxplot-idade", "figure"),
+    Input("estado-dropdown-selection", "value"),
+)
+def atualizar_boxplot_idade(estado):
+    df = carregar_df_estado(estado)
+    col = 'Idade na data do crime'
+    if col not in df.columns:
+        return go.Figure()
+    # Remove valores nulos e não numéricos
+    df_valida = df[pd.to_numeric(df[col], errors='coerce').notnull()]
+    if df_valida.empty:
+        return go.Figure()
+    
+    y = df_valida[col].astype(float)
+
+    media = y.mean()
+    mediana = y.median()
+    minimo = y.min()
+    maximo = y.max()
+
+
+    fig = go.Figure()
+    fig.add_trace(go.Box(
+        y=df_valida[col],
+        boxpoints='all',
+        jitter=0.3,
+        pointpos=-1.8,
+        marker_color='#388F30',
+        line_color='#950404',
+        name='Idade'
+    ))
+
+    # Anotações
+    fig.add_annotation(
+        x=0.35, y=media,
+        text=f"Média: {media:.1f}",
+        showarrow=True,
+        arrowhead=2,
+        #ax=400,
+        ay=0,
+        font=dict(color="black"),
+        bgcolor="rgba(255,200,200,0.2)"
+    )
+    fig.add_annotation(
+        x=0.35, y=mediana,
+        text=f"Mediana: {mediana:.1f}",
+        showarrow=True,
+        arrowhead=2,
+        #ax=400,
+        ay=0,
+        font=dict(color="black"),
+        bgcolor="rgba(255,200,200,0.2)"
+    )
+    fig.add_annotation(
+        x=0.35, y=minimo,
+        text=f"Mínimo: {minimo:.1f}",
+        showarrow=True,
+        arrowhead=2,
+        #ax=400,
+        ay=0,
+        font=dict(color="black"),
+        bgcolor="rgba(255,200,200,0.2)"
+    )
+    fig.add_annotation(
+        x=0.35, y=maximo,
+        text=f"Máximo: {maximo:.1f}",
+        showarrow=True,
+        arrowhead=2,
+        #ax=400,
+        ay=0,
+        font=dict(color="black"),
+        bgcolor="rgba(255,200,200,0.2)"
+    )
+    fig.update_layout(
+        title=f"Boxplot da Idade na Data do Crime - {estado}",
+        yaxis_title="Idade (anos)",
+        xaxis_title="",
+        showlegend=False,
+        height=515,
+        margin=dict(l=40, r=40, t=60, b=40),
+        plot_bgcolor='white',
+    )
+    return fig
+
+@callback(
+    Output("grafico-donut-relacao", "figure"),
+    Input("estado-dropdown-selection", "value"),
+)
+
+def atualizar_grafico_donut_relacao(estado):
+    df = carregar_df_estado(estado)
+    # Pegue a coluna diretamente do dicionário
+    coluna_escolhida = list(COLUNAS_DONUT_RELACAO.values())[0]
+    if not coluna_escolhida or coluna_escolhida not in df.columns:
+        return go.Figure()
+    dados = df[coluna_escolhida].dropna()
+    if dados.empty:
+        return go.Figure()
+    contagem = dados.value_counts()
+    labels = contagem.index.tolist()
+    valores = contagem.values.tolist()
+
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=valores,
+        hole=0.45,
+        marker=dict(colors=CORES_GRAFICOS[:len(labels)]),
+        textinfo='percent+value',
+        insidetextorientation='radial',
+        sort=False
+    )])
+    fig.update_traces(
+        textfont_size=14,
+        pull=[0.02]*len(labels),
+        hovertemplate='%{label}: %{percent} (%{value})<extra></extra>'
+    )
+    fig.update_layout(
+        title="Relação entre Réu e Vítima",
+        margin=dict(l=40, r=40, t=60, b=40),
+        showlegend=True,
+        height=430,
+        legend_title_text="Resposta"
+    )
+    return fig
+
+# Callback para o gráfico de barras de tipo de relação
+@callback(
+    Output("grafico-bar-tipo-relacao", "figure"),
+    Input("estado-dropdown-selection", "value"),
+)
+def atualizar_grafico_tipo_relacao(estado):
+    df = carregar_df_estado(estado)
+    cols_tipo = list(CAUSAS_RELACAO.keys())
+    df_rel = df[cols_tipo].copy() if all(col in df.columns for col in cols_tipo) else df[[col for col in cols_tipo if col in df.columns]].copy()
+    if df_rel.empty:
+        return go.Figure()
+    contagem = (df_rel == "Sim").sum().rename(index=CAUSAS_RELACAO)
+    contagem = contagem[contagem.index != "Sem informação"]
+    contagem = contagem.sort_values(ascending=True)
+    total = contagem.sum()
+    cores = CORES_GRAFICOS * (len(contagem) // len(CORES_GRAFICOS) + 1)
+
+    fig = go.Figure(go.Bar(
+        x=contagem.values,
+        y=contagem.index,
+        orientation='h',
+        marker_color=cores[:len(contagem)],
+        text=[f"{v} ({(v/total*100):.1f}%)" if total > 0 else "0 (0%)" for v in contagem.values],
+        textposition='outside',
+    ))
+    fig.update_layout(
+        title="Tipos de relação entre réu e vítima",
+        xaxis_title="Quantidade de casos",
+        yaxis_title="Tipo de relação",
+        margin=dict(l=40, r=40, t=60, b=40),
+        height=430,
+        plot_bgcolor='white',
+    )
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(200,200,200,0.15)')
+    fig.update_yaxes(showgrid=False)
     return fig
