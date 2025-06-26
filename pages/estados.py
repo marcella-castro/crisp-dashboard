@@ -16,9 +16,9 @@ from decorators import load_df
 
 def carregar_df_estado(estado):
     if estado == "Minas Gerais":
-        return pd.read_csv("data/TJMG/df_processo_17.06.2025_TJMG.csv")
+        return pd.read_csv("data/TJMG/df_processo_TJMG.csv")
     else:
-        return pd.read_csv("data/TJSP/df_processo_17.06.2025_TJSP.csv")
+        return pd.read_csv("data/TJSP/df_processo_TJSP.csv")
 # ----------------------
 
 PAGE_TITLE = "Estados"

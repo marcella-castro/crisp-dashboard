@@ -34,7 +34,7 @@ NAVBAR = {
     },
     "Pesquisa": {
         "Histórico": {"icon": "bi bi-folder2-open", "relative_path": "/llm-analysis"},
-        "Colaboradores": {"icon": "bi bi-award-fill", "relative_path": "/recommendations"},
+        "Pesquisadores": {"icon": "bi bi-award-fill", "relative_path": "/pesquisadores"},
     },
     "Mais": {
         "Dados brutos": {"icon": "bi bi-clipboard-data-fill", "relative_path": "/about"},
@@ -79,7 +79,7 @@ SIDEBAR_STYLE = {
 
 sidebar = html.Div(
     [
-        html.Img(src=CRISP_LOGO, width=200),
+        html.Img(src=CRISP_LOGO, width=230),
         html.Hr(),
         html.P("Mensurando o Tempo do Processo de Homicídio", className="lead"),
         dbc.Nav([], vertical=True, pills=True, id="sidebar-nav"),

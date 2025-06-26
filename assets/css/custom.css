@@ -19,3 +19,27 @@
         margin-right: 10px;
     }
 }
+
+.email-hover:hover {
+    text-decoration: underline;
+    cursor: pointer;
+    color: #f1592a;
+}
+
+@media (max-width: 768px) {
+    .foto-perfil-card {
+        width: 80px !important;
+        height: 80px !important;
+        top: 100px !important;
+        right: 5px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .foto-perfil-card {
+        width: 70px !important;
+        height: 70px !important;
+        top: 10px !important;
+        right: 10px !important;
+    }
+}

@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.INFO)
 
 def load_data() -> pd.DataFrame:
     """Carrega o dataset do usuário para o dashboard, normalizando nomes de colunas."""
-    path = Path("data/TJSP/df_processo_17.06.2025_TJSP.csv")
+    path = Path("data/TJSP/df_processo_TJSP.csv")
     
     df = pd.read_csv(path)
     #print(df[['latitude', 'longitude']].head())
